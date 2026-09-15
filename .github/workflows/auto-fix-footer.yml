@@ -1,0 +1,39 @@
+name: Auto Fix Footer Image
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-and-fix-footer:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Run Footer Image Fixer Script
+        run: python fix_footer.py
+
+      - name: Commit and Push Changes if Fixed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if index.html was modified by the script
+          if [[ -n $(git status --porcelain index.html) ]]; then
+            git add index.html
+            git commit -m "auto-fix: restore missing footer image in index.html"
+            git push
+          else
+            echo "No missing footer image detected. Repository is clean!"
+          fi
